@@ -1,0 +1,120 @@
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* ── Shimmer loading skeleton ───────────────────────────────────────────────
+     Used in LoadingScreen to simulate images being generated.
+     Base colour matches background-soft (#F5F3F0); highlight is slightly cooler
+     with a faint purple tint so it feels on-brand instead of generic grey.   */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      #F5F3F0 0%,
+      #E8E3F4 50%,
+      #F5F3F0 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.8s infinite ease-in-out;
+  }
+
+  /* ── Heading fade-in-up ─────────────────────────────────────────────────────
+     Applied via key-prop trick: changing `key` re-mounts the element and
+     re-runs the animation — no JS opacity toggling needed.                    */
+  .animate-fade-in-up {
+    animation: fadeInUp 0.35s ease-out both;
+  }
+
+  /* ── Animated dots (... indicator) ─────────────────────────────────────────
+     Three spans with staggered bounce animation.                              */
+  .animate-bounce-dot {
+    display: inline-block;
+    animation: bounceDot 1.2s infinite ease-in-out;
+  }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(7px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+@keyframes bounceDot {
+  0%, 80%, 100% { transform: translateY(0);    opacity: 0.4; }
+  40%           { transform: translateY(-4px); opacity: 1;   }
+}
+
+@layer base {
+  .theme {
+    --font-heading: var(--font-sans);
+    --font-sans: var(--font-sans);
+  }
+  :root {
+    /* ── shadcn system tokens (required by ui components) ─────────────────────── */
+    --background: oklch(1 0 0);               /* #FFFFFF */
+    --foreground: oklch(0.13 0.03 277);       /* ~#1A1A2E near-black w/ blue tint */
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.13 0.03 277);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.13 0.03 277);
+    --primary: oklch(0.38 0.23 277);          /* #410CD9 Photoroom purple */
+    --primary-foreground: oklch(0.985 0 0);   /* white text on purple */
+    --secondary: oklch(0.97 0.01 277);        /* #F5F0FF very light purple */
+    --secondary-foreground: oklch(0.38 0.23 277);
+    --muted: oklch(0.97 0.005 277);           /* #F8F7FC */
+    --muted-foreground: oklch(0.48 0.01 260); /* #6B7280 */
+    --accent: oklch(0.94 0.02 277);           /* #EDE8FD brand-soft */
+    --accent-foreground: oklch(0.38 0.23 277);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.92 0.015 277);          /* #E5E0F0 */
+    --input: oklch(0.92 0.015 277);
+    --ring: oklch(0.38 0.23 277);             /* purple focus ring */
+    --chart-1: oklch(0.38 0.23 277);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --radius: 0.625rem;
+    --sidebar: oklch(0.985 0.005 277);
+    --sidebar-foreground: oklch(0.13 0.03 277);
+    --sidebar-primary: oklch(0.38 0.23 277);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.94 0.02 277);
+    --sidebar-accent-foreground: oklch(0.38 0.23 277);
+    --sidebar-border: oklch(0.92 0.015 277);
+    --sidebar-ring: oklch(0.38 0.23 277);
+
+    /* ── Photoroom brand tokens (semantic, referenced in tailwind.config.ts) ────── */
+    --brand: #410CD9;               /* primary purple */
+    --brand-hover: #3409B8;         /* slightly darker for hover states */
+    --brand-soft: #EDE8FD;          /* light purple tint — chips, tags, highlights */
+    --accent-color: #F5F0FF;        /* even lighter — subtle section tints */
+    --background-color: #FFFFFF;
+    --background-soft: #F8F7FC;     /* off-white — alternating sections */
+    --surface: #F2EEF9;             /* card surfaces, input backgrounds */
+    --fg: #1A1A2E;                  /* body text */
+    --fg-muted: #6B7280;            /* secondary text, captions */
+    --border-color: #E5E0F0;        /* dividers, input borders */
+  }
+  * {
+    @apply border-border;
+    /* outline-ring/50 equivalent — Tailwind v3 doesn't support oklch vars with /opacity modifiers */
+    outline-color: color-mix(in srgb, var(--ring) 50%, transparent);
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
