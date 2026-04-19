@@ -16,12 +16,12 @@ interface LoadingScreenProps {
 // ─── Copy ──────────────────────────────────────────────────────────────────────
 
 const MESSAGES = [
-  'Leyendo tu producto...',
-  'Escribiendo una descripción que convierta...',
-  'Optimizando bullets para cada canal...',
-  'Creando la foto perfecta para Instagram...',
-  'Generando imagen vertical para TikTok Shop...',
-  'Casi listo — puliendo los últimos detalles ✨',
+  'Reading your product...',
+  'Writing a description that converts...',
+  'Optimizing bullets for each channel...',
+  'Creating the perfect photo for Instagram...',
+  'Generating vertical image for TikTok Shop...',
+  'Almost ready — polishing the final details ✨',
 ] as const
 
 // Progress % to show at each message index.
@@ -31,11 +31,11 @@ const PROGRESS_AT = [5, 22, 38, 55, 74, 90] as const
 // ─── Shimmer card configs (mirrors KitShowcase grid) ──────────────────────────
 
 const SHIMMER_CARDS = [
-  { key: 'amazon',    label: 'Optimizado para Amazon',         aspectClass: 'aspect-square' },
-  { key: 'instagram', label: 'Optimizado para Instagram',      aspectClass: 'aspect-square' },
-  { key: 'ads',       label: 'Optimizado para Ads',            aspectClass: 'aspect-square' },
-  { key: 'pinterest', label: 'Optimizado para Pinterest/Email', aspectClass: 'aspect-square' },
-  { key: 'tiktok',    label: 'Optimizado para TikTok Shop',    aspectClass: 'aspect-[9/16]' },
+  { key: 'amazon',    label: 'Optimized for Amazon',         aspectClass: 'aspect-square' },
+  { key: 'instagram', label: 'Optimized for Instagram',      aspectClass: 'aspect-square' },
+  { key: 'ads',       label: 'Optimized for Ads',            aspectClass: 'aspect-square' },
+  { key: 'pinterest', label: 'Optimized for Pinterest/Email', aspectClass: 'aspect-square' },
+  { key: 'tiktok',    label: 'Optimized for TikTok Shop',    aspectClass: 'aspect-[9/16]' },
 ] as const
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -63,7 +63,7 @@ function ShimmerCard({ label, aspectClass }: { label: string; aspectClass: strin
       <div
         className={`overflow-hidden rounded-xl border border-border-subtle ${aspectClass}`}
         aria-busy="true"
-        aria-label={`${label} — generando...`}
+        aria-label={`${label} — generating...`}
       >
         <div className="w-full h-full shimmer" />
       </div>
@@ -138,7 +138,7 @@ export function LoadingScreen({ productUrl }: LoadingScreenProps) {
 
         {/* Eyebrow */}
         <p className="text-xs font-semibold text-brand uppercase tracking-widest">
-          Generando tu kit
+          Generating your kit
         </p>
 
         {/* Rotating heading — key re-mounts the element, triggering fade-in-up */}
@@ -156,7 +156,7 @@ export function LoadingScreen({ productUrl }: LoadingScreenProps) {
         {/* Product URL context */}
         {productUrl && (
           <p className="text-sm text-fg-muted">
-            Procesando:{' '}
+            Processing:{' '}
             <span className="font-medium text-fg">{truncateUrl(productUrl)}</span>
           </p>
         )}
@@ -175,10 +175,10 @@ export function LoadingScreen({ productUrl }: LoadingScreenProps) {
       <div className="w-full mb-10">
         <div className="flex items-center gap-3 mb-5">
           <h2 className="text-sm font-semibold text-fg">
-            5 imágenes optimizadas + staging IA
+            5 images optimized by channel
           </h2>
           <span className="text-xs text-fg-muted bg-background border border-border-subtle rounded-full px-2.5 py-1">
-            procesando...
+            processing...
           </span>
         </div>
 
@@ -201,8 +201,7 @@ export function LoadingScreen({ productUrl }: LoadingScreenProps) {
 
       {/* ── Security note ─────────────────────────────────────────────────── */}
       <p className="text-xs text-fg-muted/70 text-center max-w-[480px]">
-        Las imágenes pueden tardar un poco más — Photoroom está generando cada fondo
-        con IA específicamente para tu producto.
+        Images may take a moment longer — Photoroom is generating each background with AI specifically for your product.
       </p>
 
     </div>

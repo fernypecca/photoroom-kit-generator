@@ -18,7 +18,7 @@ export function Footer() {
           >
             Photoroom
           </Link>{' '}
-          · Un experimento de Growth
+          · A Growth Experiment
         </p>
         <p className="text-xs text-fg-muted/60">
           © {new Date().getFullYear()} Photoroom

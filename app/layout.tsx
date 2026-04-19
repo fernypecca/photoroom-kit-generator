@@ -18,15 +18,15 @@ const inter = Inter({
 // ─── SEO metadata ──────────────────────────────────────────────────────────────
 
 export const metadata: Metadata = {
-  title: 'Product Kit Generator — Powered by Photoroom',
+  title: 'Product Kit Generator — Turn any URL into 5 channel-ready images | Powered by Photoroom',
   description:
-    'Paste your product URL and get a ready-to-use marketing kit: SEO description, platform copy, 5 professional product images + AI lifestyle staging — in seconds.',
+    'Paste your product URL and get a complete marketing kit: SEO description, 5 images optimized for Amazon, Instagram, TikTok and more. In 30 seconds.',
   openGraph: {
-    title: 'Product Kit Generator — Powered by Photoroom',
+    title: 'Product Kit Generator — Turn any URL into 5 channel-ready images | Powered by Photoroom',
     description:
-      'Get a professional marketing kit for your product in seconds. SEO copy + 5 platform-optimised images + AI lifestyle staging.',
+      'Paste your product URL and get a complete marketing kit: SEO description, 5 images optimized for Amazon, Instagram, TikTok and more. In 30 seconds.',
     siteName: 'Photoroom Product Kit Generator',
-    locale: 'es_ES',
+    locale: 'en_US',
     type: 'website',
   },
 }
@@ -39,7 +39,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="es" className={cn(inter.variable)}>
+    <html lang="en" className={cn(inter.variable)}>
       <body className="antialiased bg-background text-foreground min-h-screen">
         <Providers>{children}</Providers>
       </body>

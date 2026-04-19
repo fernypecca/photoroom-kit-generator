@@ -134,7 +134,7 @@ function ImageCard({
         {/* Download button — always visible (Fix 2), scales on hover */}
         <button
           onClick={onDownload}
-          aria-label={`Descargar imagen ${channelLabel}`}
+          aria-label={`Download ${channelLabel} image`}
           className={[
             'absolute bottom-2 right-2',
             'bg-white/90 text-fg rounded-full p-2 shadow-md',
@@ -154,7 +154,7 @@ function ImageCard({
 
 function CopyButton({
   label,
-  copiedLabel = '✓ Copiado',
+  copiedLabel = '✓ Copied',
   onCopy,
   size = 'sm',
 }: {
@@ -212,30 +212,30 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
     navigator.clipboard
       .writeText(text)
       .then(() => toast.success(successMsg))
-      .catch(() => toast.error('No se pudo copiar. Intentá de nuevo.'))
+      .catch(() => toast.error('Could not copy. Please try again.'))
   }
 
   function handleCopyAll(): void {
     const text = [
-      '📝 Descripción SEO:\n',
+      '📝 SEO Description:\n',
       kit.copy.description,
       '\n\n🔹 5 Bullets:\n',
       kit.copy.bullets.map((b) => `• ${b}`).join('\n'),
       '\n\n🐦 Tweet:\n',
       kit.copy.tweet,
     ].join('')
-    copyToClipboard(text, 'Todo el copy copiado al portapapeles ✓')
+    copyToClipboard(text, 'Copied to clipboard ✓')
     track(EVENTS.COPY_COPIED, { type: 'all' })
   }
 
   function handleCopyBullets(): void {
     const text = kit.copy.bullets.map((b) => `• ${b}`).join('\n')
-    copyToClipboard(text, 'Bullets copiados al portapapeles ✓')
+    copyToClipboard(text, 'Bullets copied to clipboard ✓')
     track(EVENTS.COPY_COPIED, { type: 'bullets' })
   }
 
   function handleCopyTweet(): void {
-    copyToClipboard(kit.copy.tweet, 'Tweet copiado al portapapeles ✓')
+    copyToClipboard(kit.copy.tweet, 'Tweet copied to clipboard ✓')
     track(EVENTS.COPY_COPIED, { type: 'tweet' })
   }
 
@@ -247,11 +247,11 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
       {/* ── 1. Header — Fix 1: impactante, celebratorio ─────────────────────── */}
       <header className="flex flex-col gap-5">
         <p className="text-sm font-semibold text-brand uppercase tracking-widest">
-          Tu kit está listo ✨
+          Your kit is ready ✨
         </p>
 
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-fg leading-[1.1]">
-          Aquí está tu kit de marketing
+          Here&apos;s your marketing kit
         </h1>
 
         {/* Platform + time badges — more prominent */}
@@ -260,7 +260,7 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
             {platformLabel}
           </span>
           <span className="text-sm text-fg-muted bg-background-soft border border-border-subtle px-3 py-1 rounded-full">
-            Generado en ~30s
+            Generated in ~30s
           </span>
         </div>
 
@@ -290,10 +290,10 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
       <section aria-labelledby="images-heading">
         <div className="flex items-center gap-3 mb-6">
           <h2 id="images-heading" className="text-base font-semibold text-fg">
-            5 imágenes optimizadas por canal
+            5 images optimized by channel
           </h2>
           <span className="text-xs font-medium text-fg-muted bg-background border border-border-subtle rounded-full px-2.5 py-1">
-            Procesadas con Photoroom
+            Processed with Photoroom
           </span>
         </div>
 
@@ -319,14 +319,14 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
           <div className="flex items-center gap-2.5">
             <Sparkles size={24} className="text-brand shrink-0" aria-hidden="true" />
             <h3 className="text-lg font-bold text-fg leading-snug">
-              ¿Querés las 5 imágenes sin marca de agua?
+              Want the 5 images without watermark?
             </h3>
           </div>
           <p className="text-sm text-fg-muted">
-            Con Photoroom podés procesar tu catálogo completo, en minutos.
+            With Photoroom you can process your entire catalog, in minutes.
           </p>
           <p className="text-xs text-fg-muted/70 mt-1">
-            Plan gratuito disponible · Sin tarjeta de crédito · Cancelá cuando quieras
+            Free plan available · No credit card · Cancel anytime
           </p>
         </div>
 
@@ -342,7 +342,7 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2',
           ].join(' ')}
         >
-          Probar Photoroom gratis →
+          Try Photoroom for free →
         </a>
       </div>
 
@@ -357,12 +357,12 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
                 Detected: {platformLabel}
               </span>
               <span className="text-xs text-fg-muted">
-                Generado en ~8s · Adaptado al tono {kit.copy.detectedPlatform}
+                Generated in ~8s · Adapted to {kit.copy.detectedPlatform} tone
               </span>
             </div>
             <CopyButton
-              label="Copiar todo"
-              copiedLabel="✓ Copiado"
+              label="Copy all"
+              copiedLabel="✓ Copied"
               onCopy={handleCopyAll}
             />
           </div>
@@ -376,10 +376,10 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
                   id="copy-heading"
                   className="text-xs font-bold tracking-widest uppercase text-fg"
                 >
-                  Descripción SEO
+                  SEO Description
                 </h3>
                 <span className="text-xs text-fg-muted/70 bg-background-soft border border-border-subtle px-2 py-0.5 rounded-full">
-                  {wordCount} palabras
+                  {wordCount} words
                 </span>
               </div>
               <p className="text-sm text-fg leading-relaxed">
@@ -394,8 +394,8 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
                   5 Bullets
                 </h3>
                 <CopyButton
-                  label="Copiar bullets"
-                  copiedLabel="✓ Copiados"
+                  label="Copy bullets"
+                  copiedLabel="✓ Copied"
                   onCopy={handleCopyBullets}
                   size="xs"
                 />
@@ -420,12 +420,12 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
                     Tweet
                   </h3>
                   <span className="text-xs text-fg-muted/70 bg-background-soft border border-border-subtle px-2 py-0.5 rounded-full">
-                    {tweetLength}/280 caracteres
+                    {tweetLength}/280 characters
                   </span>
                 </div>
                 <CopyButton
-                  label="Copiar tweet"
-                  copiedLabel="✓ Copiado"
+                  label="Copy tweet"
+                  copiedLabel="✓ Copied"
                   onCopy={handleCopyTweet}
                   size="xs"
                 />
@@ -442,7 +442,7 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
       {/* ── 5. Final CTA ───────────────────────────────────────────────────── */}
       <section className="text-center flex flex-col items-center gap-6">
         <h2 className="text-2xl font-bold text-fg tracking-tight">
-          ¿Te gustó el resultado?
+          Did you like the result?
         </h2>
 
         <div className="flex flex-col sm:flex-row gap-3 items-center">
@@ -458,7 +458,7 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2',
             ].join(' ')}
           >
-            Explorar Photoroom →
+            Explore Photoroom →
           </a>
 
           <button
@@ -474,7 +474,7 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2',
             ].join(' ')}
           >
-            ← Generar otro kit
+            ← Generate another kit
           </button>
         </div>
       </section>

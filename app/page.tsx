@@ -28,10 +28,10 @@ function ErrorScreen({ error, onReset }: { error: string; onReset: () => void })
   return (
     <div className="flex-1 flex flex-col items-center justify-center py-24 px-4 text-center">
       <AlertCircle className="w-12 h-12 text-destructive mb-4" aria-hidden="true" />
-      <h2 className="text-2xl font-bold text-fg mb-2">Algo salió mal</h2>
+      <h2 className="text-2xl font-bold text-fg mb-2">Something went wrong</h2>
       <p className="text-fg-muted mb-6 max-w-md">{error}</p>
       <Button onClick={onReset} variant="outline">
-        ← Intentar con otra URL
+        ← Try with another URL
       </Button>
     </div>
   )
@@ -63,7 +63,7 @@ export default function Home() {
     const scrapeData = await scrapeRes.json()
     if (!scrapeData.success) {
       track(EVENTS.KIT_GENERATION_FAILED, { step: 'scrape', url })
-      setError('No pudimos leer ese producto. Probá con otra URL.')
+      setError('We couldn\'t read that product. Try with another URL.')
       setAppState('error')
       return
     }
@@ -78,7 +78,7 @@ export default function Home() {
     const generateData = await generateRes.json()
     if (!generateData.success) {
       track(EVENTS.KIT_GENERATION_FAILED, { step: 'generate', url })
-      setError('Error al generar el copy. Por favor intentá de nuevo.')
+      setError('Error generating the copy. Please try again.')
       setAppState('error')
       return
     }
@@ -93,7 +93,7 @@ export default function Home() {
     const imagesData = await imagesRes.json()
     if (!imagesData.success) {
       track(EVENTS.KIT_GENERATION_FAILED, { step: 'images', url })
-      setError('Error al procesar las imágenes. Por favor intentá de nuevo.')
+      setError('Error processing the images. Please try again.')
       setAppState('error')
       return
     }

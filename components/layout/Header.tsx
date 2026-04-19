@@ -44,7 +44,7 @@ export function Header() {
             'border-brand text-brand hover:bg-brand-soft'
           )}
         >
-          Ir a Photoroom →
+          Go to Photoroom →
         </Link>
 
       </div>

@@ -62,12 +62,12 @@ export function HeroInput({ onSubmit, isLoading = false }: HeroInputProps) {
     setError(null)
 
     if (!url.trim()) {
-      setError('Pegá la URL de un producto para continuar.')
+      setError('Paste a product URL to continue.')
       inputRef.current?.focus()
       return
     }
     if (!isValidUrl(url)) {
-      setError('La URL no parece válida. Probá con algo como: https://tienda.com/producto')
+      setError('That URL doesn\'t look valid. Try something like: https://store.com/product')
       inputRef.current?.focus()
       return
     }
@@ -101,13 +101,13 @@ export function HeroInput({ onSubmit, isLoading = false }: HeroInputProps) {
 
         {/* ── Heading ────────────────────────────────────────────────────────── */}
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-fg text-balance leading-[1.1]">
-          Convierte cualquier URL en un kit de marketing completo
+          Turn any product URL into a complete marketing kit
         </h1>
 
         {/* ── Subheading ─────────────────────────────────────────────────────── */}
         <p className="text-lg sm:text-xl text-fg-muted max-w-[560px] text-balance">
-          Descripción SEO + 5 imágenes optimizadas para Amazon, Instagram, TikTok y más.
-          En 30 segundos, por 6 céntimos.
+          SEO description + 5 images optimized for Amazon, Instagram, TikTok and more.
+          In 30 seconds.
         </p>
 
         {/* ── Input + Button form ─────────────────────────────────────────────── */}
@@ -119,7 +119,7 @@ export function HeroInput({ onSubmit, isLoading = false }: HeroInputProps) {
           <div className="flex-1 flex flex-col gap-1.5">
             {/* sr-only label for accessibility */}
             <label htmlFor={inputId} className="sr-only">
-              URL del producto
+              Product URL
             </label>
 
             <input
@@ -133,7 +133,7 @@ export function HeroInput({ onSubmit, isLoading = false }: HeroInputProps) {
                 if (error) setError(null)
               }}
               disabled={isLoading}
-              placeholder="Pegá la URL de tu producto (Shopify, Amazon, Etsy...)"
+              placeholder="Paste your product URL (Shopify, Amazon, Etsy...)"
               aria-describedby={`${error ? errorId : ''} ${socialProofId}`.trim()}
               aria-invalid={!!error}
               className={[
@@ -168,7 +168,7 @@ export function HeroInput({ onSubmit, isLoading = false }: HeroInputProps) {
               'disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100',
             ].join(' ')}
           >
-            {isLoading ? 'Generando…' : 'Generar mi kit →'}
+            {isLoading ? 'Generating…' : 'Generate my kit →'}
           </button>
         </form>
 
@@ -176,18 +176,18 @@ export function HeroInput({ onSubmit, isLoading = false }: HeroInputProps) {
         <div
           id={socialProofId}
           className="flex items-center gap-2 text-sm text-fg-muted"
-          aria-label="Lo que incluye el kit"
+          aria-label="What's included in the kit"
         >
-          <span>⚡ 30 segundos</span>
+          <span>⚡ 30 seconds</span>
           <span className="text-border-subtle" aria-hidden="true">·</span>
-          <span>🎨 5 imágenes + lifestyle AI</span>
+          <span>🎨 5 images + lifestyle AI</span>
           <span className="text-border-subtle" aria-hidden="true">·</span>
-          <span>✍️ Copy SEO</span>
+          <span>✍️ SEO descriptions</span>
         </div>
 
         {/* ── Example URL pills ───────────────────────────────────────────────── */}
-        <div className="flex flex-wrap justify-center gap-2" aria-label="URLs de ejemplo">
-          <span className="text-sm text-fg-muted self-center">Probá con:</span>
+        <div className="flex flex-wrap justify-center gap-2" aria-label="Example URLs">
+          <span className="text-sm text-fg-muted self-center">Try with:</span>
           {EXAMPLE_URLS.map((example) => (
             <button
               key={example}

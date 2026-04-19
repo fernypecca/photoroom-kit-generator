@@ -100,12 +100,12 @@ export function EmailGate({ kit, onEmailSubmit, isSubmitting = false }: EmailGat
 
     const trimmed = email.trim()
     if (!trimmed) {
-      setError('Por favor ingresá tu email.')
+      setError('Please enter your email.')
       inputRef.current?.focus()
       return
     }
     if (!EMAIL_REGEX.test(trimmed)) {
-      setError('Por favor ingresá un email válido.')
+      setError('Please enter a valid email address.')
       inputRef.current?.focus()
       return
     }
@@ -178,10 +178,10 @@ export function EmailGate({ kit, onEmailSubmit, isSubmitting = false }: EmailGat
             id={headingId}
             className="text-2xl font-bold tracking-tight text-fg"
           >
-            Tu kit está listo 🎉
+            Your kit is ready 🎉
           </h2>
           <p className="text-sm text-fg-muted">
-            30 segundos bien invertidos — desbloqueá todo con tu email.
+            30 seconds well spent — unlock everything with your email.
           </p>
         </div>
 
@@ -195,7 +195,7 @@ export function EmailGate({ kit, onEmailSubmit, isSubmitting = false }: EmailGat
               htmlFor={`${headingId}-email`}
               className="text-sm font-medium text-fg"
             >
-              Tu email
+              Your email
             </label>
 
             <input
@@ -208,7 +208,7 @@ export function EmailGate({ kit, onEmailSubmit, isSubmitting = false }: EmailGat
                 if (error) setError(null)
               }}
               disabled={isSubmitting}
-              placeholder="tu@email.com"
+              placeholder="you@email.com"
               autoComplete="email"
               aria-describedby={error ? errorId : undefined}
               aria-invalid={!!error}
@@ -251,17 +251,17 @@ export function EmailGate({ kit, onEmailSubmit, isSubmitting = false }: EmailGat
             {isSubmitting ? (
               <>
                 <Loader2 size={15} className="animate-spin" aria-hidden="true" />
-                Guardando...
+                Saving...
               </>
             ) : (
-              'Ver mi kit →'
+              'See my kit →'
             )}
           </button>
         </form>
 
         {/* Disclaimer */}
         <p className="text-xs text-fg-muted text-center leading-relaxed">
-          Sin spam. Te mandamos el kit por email para que lo tengas guardado.
+          No spam. We&apos;ll send your kit by email so you have it saved.
         </p>
       </div>
     </div>
