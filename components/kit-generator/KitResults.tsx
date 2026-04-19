@@ -205,7 +205,9 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
   // ── Derived values ────────────────────────────────────────────────────────
   const platformLabel = PLATFORM_LABEL[kit.copy.detectedPlatform] ?? kit.copy.detectedPlatform
   const wordCount     = kit.copy.description.trim().split(/\s+/).length
-  const tweetLength   = kit.copy.tweet.length
+
+  // ── Inline copy state (used by tweet card buttons) ────────────────────────
+  const [copied, setCopied] = useState<string | null>(null)
 
   // ── Clipboard helpers ─────────────────────────────────────────────────────
   function copyToClipboard(text: string, successMsg: string): void {
@@ -213,6 +215,13 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
       .writeText(text)
       .then(() => toast.success(successMsg))
       .catch(() => toast.error('Could not copy. Please try again.'))
+  }
+
+  function handleCopy(text: string, type: string): void {
+    copyToClipboard(text, 'Copied to clipboard ✓')
+    setCopied(type)
+    setTimeout(() => setCopied(null), 2000)
+    track(EVENTS.COPY_COPIED, { type })
   }
 
   function handleCopyAll(): void {
@@ -232,11 +241,6 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
     const text = kit.copy.bullets.map((b) => `• ${b}`).join('\n')
     copyToClipboard(text, 'Bullets copied to clipboard ✓')
     track(EVENTS.COPY_COPIED, { type: 'bullets' })
-  }
-
-  function handleCopyTweet(): void {
-    copyToClipboard(kit.copy.tweet, 'Tweet copied to clipboard ✓')
-    track(EVENTS.COPY_COPIED, { type: 'tweet' })
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -263,6 +267,11 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
             Generated in ~30s
           </span>
         </div>
+
+        {/* Social proof */}
+        <p className="text-xs text-fg-muted mt-2">
+          Trusted by Amazon, DoorDash and Decathlon · 300M+ downloads
+        </p>
 
         {/* Product URL */}
         <div className="flex items-center gap-1.5 text-base text-fg-muted mt-1">
@@ -319,11 +328,11 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
           <div className="flex items-center gap-2.5">
             <Sparkles size={24} className="text-brand shrink-0" aria-hidden="true" />
             <h3 className="text-lg font-bold text-fg leading-snug">
-              Want the 5 images without watermark?
+              Ready to do this for your entire catalog?
             </h3>
           </div>
           <p className="text-sm text-fg-muted">
-            With Photoroom you can process your entire catalog, in minutes.
+            This took 30 seconds for 1 product. Photoroom automates this for every SKU — bulk editing, API integration, direct Shopify sync.
           </p>
           <p className="text-xs text-fg-muted/70 mt-1">
             Free plan available · No credit card · Cancel anytime
@@ -412,27 +421,62 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
               </ol>
             </div>
 
-            {/* ── Tweet ───────────────────────────────────────────────────── */}
+            {/* ── Tweet — X/Twitter card style ────────────────────────────── */}
             <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div className="flex items-center gap-3">
-                  <h3 className="text-xs font-bold tracking-widest uppercase text-fg">
-                    Tweet
-                  </h3>
-                  <span className="text-xs text-fg-muted/70 bg-background-soft border border-border-subtle px-2 py-0.5 rounded-full">
-                    {tweetLength}/280 characters
-                  </span>
+              <h3 className="text-xs font-bold tracking-widest uppercase text-fg">
+                Tweet
+              </h3>
+
+              <div className="border border-border-subtle rounded-2xl p-4 bg-white max-w-[500px]">
+                {/* Tweet header */}
+                <div className="flex items-center gap-3 mb-3">
+                  {/* Avatar — gradient circle with first letter of domain */}
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand to-brand-hover flex items-center justify-center text-white font-bold text-sm shrink-0">
+                    {productUrl.replace(/^https?:\/\//, '').split('.')[0]?.[0]?.toUpperCase() ?? 'U'}
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm text-fg leading-tight">Your Store</p>
+                    <p className="text-xs text-fg-muted">@yourstore</p>
+                  </div>
+                  {/* X logo */}
+                  <div className="ml-auto">
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current text-fg" aria-label="X (Twitter)">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.45-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                  </div>
                 </div>
-                <CopyButton
-                  label="Copy tweet"
-                  copiedLabel="✓ Copied"
-                  onCopy={handleCopyTweet}
-                  size="xs"
-                />
+
+                {/* Tweet text */}
+                <p className="text-sm text-fg leading-relaxed mb-3">{kit.copy.tweet}</p>
+
+                {/* Tweet footer */}
+                <div className="flex items-center justify-between pt-3 border-t border-border-subtle flex-wrap gap-2">
+                  <p className="text-xs text-fg-muted">{kit.copy.tweet.length}/280 characters</p>
+                  <div className="flex items-center gap-3">
+                    {/* Copy tweet button */}
+                    <button
+                      onClick={() => handleCopy(kit.copy.tweet, 'tweet')}
+                      className="flex items-center gap-1.5 text-xs text-fg-muted hover:text-fg transition-colors"
+                    >
+                      <Copy className="w-3.5 h-3.5" aria-hidden="true" />
+                      {copied === 'tweet' ? '✓ Copied' : 'Copy tweet'}
+                    </button>
+                    {/* Share on X button */}
+                    <a
+                      href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(kit.copy.tweet)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => track(EVENTS.PHOTOROOM_CTA_CLICKED, { location: 'tweet_share' })}
+                      className="flex items-center gap-1.5 text-xs font-semibold bg-black text-white px-3 py-1.5 rounded-full hover:bg-gray-800 transition-colors"
+                    >
+                      <svg viewBox="0 0 24 24" className="w-3 h-3 fill-current" aria-label="Share on X">
+                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.45-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                      </svg>
+                      Share on X
+                    </a>
+                  </div>
+                </div>
               </div>
-              <blockquote className="text-sm text-fg italic leading-relaxed border-l-2 border-brand/30 pl-4 py-1">
-                {kit.copy.tweet}
-              </blockquote>
             </div>
 
           </div>
