@@ -1,0 +1,14 @@
+{
+  "regions": ["cdg1"],
+  "functions": {
+    "app/api/scrape/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/generate/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/process-images/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}
