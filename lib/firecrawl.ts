@@ -84,6 +84,11 @@ export async function scrapeProduct(url: string): Promise<ScrapedProduct> {
         // formats: ['markdown'] is fast, reliable, and always includes metadata.
         // No LLM credits consumed, no 30-60s wait.
         formats: ['markdown'],
+        // Pass a real browser User-Agent so the target site doesn't block the
+        // Firecrawl crawler as a bot (important for Shopify / CDN-protected stores).
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        },
       }),
       signal: AbortSignal.timeout(30_000),
     })
