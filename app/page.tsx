@@ -12,6 +12,7 @@ import { AlertCircle } from 'lucide-react'
 import { Header }      from '@/components/layout/Header'
 import { Footer }      from '@/components/layout/Footer'
 import { HeroInput }   from '@/components/kit-generator/HeroInput'
+import { TrustedBy }   from '@/components/kit-generator/TrustedBy'
 import { KitShowcase } from '@/components/kit-generator/KitShowcase'
 import { LoadingScreen } from '@/components/kit-generator/LoadingScreen'
 import { EmailGate }   from '@/components/kit-generator/EmailGate'
@@ -154,6 +155,7 @@ export default function Home() {
             <div className="flex items-center justify-center">
               <HeroInput onSubmit={handleSubmit} />
             </div>
+            <TrustedBy />
             <KitShowcase />
           </>
         )}
