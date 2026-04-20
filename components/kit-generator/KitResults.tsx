@@ -248,18 +248,21 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
   return (
     <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-12 md:pt-16 pb-16 sm:pb-20 flex flex-col gap-16">
 
-      {/* ── 1. Header — Fix 1: impactante, celebratorio ─────────────────────── */}
-      <header className="flex flex-col gap-5">
-        <p className="text-sm font-semibold text-brand uppercase tracking-widest">
+      {/* ── 1. Header ──────────────────────────────────────────────────────── */}
+      <header className="flex flex-col gap-4">
+
+        {/* Eyebrow */}
+        <p className="text-base font-bold text-brand uppercase tracking-widest">
           Your kit is ready ✨
         </p>
 
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-fg leading-[1.1]">
+        {/* Main headline — big and celebratory */}
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-fg leading-[1.05]">
           Here&apos;s your marketing kit
         </h1>
 
-        {/* Platform + time badges — more prominent */}
-        <div className="flex flex-wrap gap-2 items-center">
+        {/* Platform + time badges */}
+        <div className="flex flex-wrap gap-2 items-center mt-1">
           <span className="text-sm font-semibold text-brand bg-brand-soft px-3 py-1 rounded-full">
             {platformLabel}
           </span>
@@ -268,19 +271,22 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
           </span>
         </div>
 
-        {/* Social proof */}
-        <p className="text-xs text-fg-muted mt-2">
-          Trusted by Amazon, DoorDash and Decathlon · 300M+ downloads
-        </p>
+        {/* Social proof — pill with border, more visible */}
+        <div className="inline-flex items-center gap-2 self-start border border-border-subtle rounded-full px-3 py-1.5 bg-background-soft mt-1">
+          <span className="text-xs text-fg-muted/50" aria-hidden="true">⭐⭐⭐⭐⭐</span>
+          <span className="text-xs font-medium text-fg-muted">
+            Trusted by Amazon, DoorDash &amp; Decathlon · 300M+ downloads
+          </span>
+        </div>
 
         {/* Product URL */}
-        <div className="flex items-center gap-1.5 text-base text-fg-muted mt-1">
-          <Link2 size={15} aria-hidden="true" className="shrink-0" />
+        <div className="flex items-center gap-1.5 text-sm text-fg-muted mt-1">
+          <Link2 size={14} aria-hidden="true" className="shrink-0" />
           <span className="truncate">{truncateUrl(productUrl)}</span>
         </div>
 
         {/* Separator */}
-        <hr className="border-border-subtle" />
+        <hr className="border-border-subtle mt-1" />
       </header>
 
       {/* ── 2. Image grid ──────────────────────────────────────────────────── */}
@@ -306,19 +312,38 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
           </span>
         </div>
 
+        {/*
+          Grid: 3 cols on lg, 2 on sm, 1 on mobile.
+          TikTok (9:16) is constrained to ~40% width on sm so it doesn't
+          dominate the row — centered on sm, full width on lg.
+        */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
-          {kit.images.map((img) => (
-            <ImageCard
-              key={img.style}
-              style={img.style}
-              channelLabel={img.channelLabel}
-              imageUrl={img.imageUrl}
-              onDownload={() => {
-                triggerDownload(img.imageUrl, img.style)
-                track(EVENTS.IMAGE_DOWNLOADED, { style: img.style })
-              }}
-            />
-          ))}
+          {kit.images.map((img) => {
+            const card = (
+              <ImageCard
+                key={img.style}
+                style={img.style}
+                channelLabel={img.channelLabel}
+                imageUrl={img.imageUrl}
+                onDownload={() => {
+                  triggerDownload(img.imageUrl, img.style)
+                  track(EVENTS.IMAGE_DOWNLOADED, { style: img.style })
+                }}
+              />
+            )
+
+            if (img.style === 'tiktok') {
+              return (
+                <div key={img.style} className="sm:col-span-2 lg:col-span-1 flex justify-center lg:justify-start">
+                  <div className="w-2/5 sm:w-1/3 lg:w-full">
+                    {card}
+                  </div>
+                </div>
+              )
+            }
+
+            return card
+          })}
         </div>
       </section>
 
