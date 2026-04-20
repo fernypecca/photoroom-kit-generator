@@ -16,11 +16,11 @@ interface LoadingScreenProps {
 // ─── Copy ──────────────────────────────────────────────────────────────────────
 
 const MESSAGES = [
-  'Reading your product...',
-  'Writing a description that converts...',
-  'Optimizing bullets for each channel...',
-  'Creating the perfect photo for Instagram...',
-  'Generating vertical image for TikTok Shop...',
+  'Reading your product',
+  'Writing a description that converts',
+  'Optimizing bullets for each channel',
+  'Creating the perfect photo for Instagram',
+  'Generating vertical image for TikTok Shop',
   'Almost ready — polishing the final details ✨',
 ] as const
 
