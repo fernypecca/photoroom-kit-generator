@@ -73,10 +73,6 @@ export function TrustedBy() {
             DOORDASH
           </span>
 
-          {/* POSHMARK — semibold, uppercase */}
-          <span className="text-lg sm:text-xl font-semibold text-fg/40 leading-none tracking-widest select-none">
-            POSHMARK
-          </span>
 
         </div>
       </div>
