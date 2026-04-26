@@ -2,15 +2,17 @@
 
 import { useState, useRef, useId } from 'react'
 import { track, EVENTS } from '@/lib/analytics'
+import type { Variant } from '@/lib/ab'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
 interface HeroInputProps {
-  /** Called with the validated URL when the user submits the form.
-   *  Step 6 will wire this to the state machine (kicks off scrape → generate → images). */
+  /** Called with the validated URL when the user submits the form. */
   onSubmit?: (url: string) => void
-  /** Disables the form while the kit is being generated (Step 6). */
+  /** Disables the form while the kit is being generated. */
   isLoading?: boolean
+  /** A/B variant — controls which headline is shown. */
+  variant?: Variant
 }
 
 // ─── Example URL pills ─────────────────────────────────────────────────────────
@@ -46,7 +48,7 @@ function normalizeUrl(value: string): string {
 
 // ─── HeroInput component ───────────────────────────────────────────────────────
 
-export function HeroInput({ onSubmit, isLoading = false }: HeroInputProps) {
+export function HeroInput({ onSubmit, isLoading = false, variant = 'A' }: HeroInputProps) {
   const [url, setUrl] = useState('')
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -101,7 +103,9 @@ export function HeroInput({ onSubmit, isLoading = false }: HeroInputProps) {
 
         {/* ── Heading ────────────────────────────────────────────────────────── */}
         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-fg text-balance leading-[1.1]">
-          Turn any product URL into a complete marketing kit
+          {variant === 'A'
+            ? 'Turn any product URL into a complete marketing kit'
+            : 'See how much you\'re losing with bad product photos'}
         </h1>
 
         {/* ── Subheading ─────────────────────────────────────────────────────── */}

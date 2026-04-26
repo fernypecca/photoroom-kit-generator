@@ -19,8 +19,10 @@ interface KitResultsProps {
   kit: GeneratedKit
   /** The seller's original product URL — shown in the header for context. */
   productUrl: string
-  /** Called when the user clicks "Generar otro kit". Parent resets the flow. */
+  /** Called when the user clicks "Generate another kit". Parent resets the flow. */
   onReset: () => void
+  /** Called when the user clicks any Photoroom CTA — used for A/B tracking. */
+  onPhotoroomCta?: () => void
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -195,7 +197,7 @@ function CopyButton({
 
 // ─── KitResults ───────────────────────────────────────────────────────────────
 
-export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
+export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResultsProps) {
 
   // ── Analytics on mount ────────────────────────────────────────────────────
   useEffect(() => {
@@ -368,7 +370,7 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
           href={PHOTOROOM_URL}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => track(EVENTS.PHOTOROOM_CTA_CLICKED, { location: 'results_upgrade' })}
+          onClick={() => { track(EVENTS.PHOTOROOM_CTA_CLICKED, { location: 'results_upgrade' }); onPhotoroomCta?.() }}
           className={[
             'shrink-0 inline-flex items-center justify-center',
             'bg-brand hover:bg-brand-hover text-white font-semibold text-sm',
@@ -519,7 +521,7 @@ export function KitResults({ kit, productUrl, onReset }: KitResultsProps) {
             href={PHOTOROOM_URL}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => track(EVENTS.PHOTOROOM_CTA_CLICKED, { location: 'results_final' })}
+            onClick={() => { track(EVENTS.PHOTOROOM_CTA_CLICKED, { location: 'results_final' }); onPhotoroomCta?.() }}
             className={[
               'inline-flex items-center justify-center',
               'bg-brand hover:bg-brand-hover text-white font-semibold text-sm',

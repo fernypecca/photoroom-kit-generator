@@ -6,7 +6,7 @@
 //                                                   ↘ error (any step)
 // All API calls happen here; child components are purely presentational.
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AlertCircle } from 'lucide-react'
 
 import { Header }      from '@/components/layout/Header'
@@ -21,7 +21,9 @@ import { Button }      from '@/components/ui/button'
 import { Toaster }     from '@/components/ui/sonner'
 
 import { track, EVENTS } from '@/lib/analytics'
-import type { AppState, GeneratedKit } from '@/types'
+import { getVariant, trackEvent } from '@/lib/ab'
+import type { AppState, GeneratedKit, } from '@/types'
+import type { Variant } from '@/lib/ab'
 
 // ─── ErrorScreen (inline — only used here) ────────────────────────────────────
 
@@ -46,6 +48,14 @@ export default function Home() {
   const [kit, setKit]                         = useState<GeneratedKit | null>(null)
   const [error, setError]                     = useState<string | null>(null)
   const [isSubmittingEmail, setIsSubmittingEmail] = useState(false)
+  const [variant, setVariant]                 = useState<Variant>('A')
+
+  // ── A/B: assign variant on mount + track visit ────────────────────────────
+  useEffect(() => {
+    const v = getVariant()
+    setVariant(v)
+    trackEvent('visit', v)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Main pipeline ──────────────────────────────────────────────────────────
 
@@ -53,6 +63,7 @@ export default function Home() {
     setProductUrl(url)
     setError(null)
     track(EVENTS.URL_PASTED, { url })
+    trackEvent('generate', variant)
 
     // ── Step 1: Scrape ───────────────────────────────────────────────────────
     setAppState('scraping')
@@ -153,7 +164,7 @@ export default function Home() {
         {appState === 'idle' && (
           <>
             <div className="flex items-center justify-center">
-              <HeroInput onSubmit={handleSubmit} />
+              <HeroInput onSubmit={handleSubmit} variant={variant} />
             </div>
             <TrustedBy />
             <KitShowcase />
@@ -180,6 +191,7 @@ export default function Home() {
             kit={kit}
             productUrl={productUrl}
             onReset={handleReset}
+            onPhotoroomCta={() => trackEvent('cta_click', variant)}
           />
         )}
 
