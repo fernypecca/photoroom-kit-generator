@@ -63,7 +63,6 @@ export default function Home() {
     setProductUrl(url)
     setError(null)
     track(EVENTS.URL_PASTED, { url })
-    trackEvent('generate', variant)
 
     // ── Step 1: Scrape ───────────────────────────────────────────────────────
     setAppState('scraping')
@@ -118,6 +117,7 @@ export default function Home() {
     }
     setKit(generatedKit)
     track(EVENTS.KIT_GENERATION_COMPLETED, { platform: generateData.data.detectedPlatform, url })
+    trackEvent('generate', variant)
     setAppState('email_gate')
   }
 
