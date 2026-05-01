@@ -11,7 +11,7 @@ import { toast } from 'sonner'
 
 import type { GeneratedKit, GeneratedCopy, ImageStyle, Platform } from '@/types'
 import { track, EVENTS } from '@/lib/analytics'
-import { BeforeAfterSlider } from './BeforeAfterSlider'
+import { PlatformMockup } from './PlatformMockup'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -33,15 +33,6 @@ const PLATFORM_LABEL: Record<Platform, string> = {
   etsy:    'Etsy seller',
   amazon:  'Amazon seller',
   generic: 'Ecommerce',
-}
-
-/** Aspect ratio class for each image style. */
-const ASPECT_CLASS: Record<ImageStyle, string> = {
-  amazon:    'aspect-square',
-  instagram: 'aspect-square',
-  ads:       'aspect-square',
-  pinterest: 'aspect-square',
-  tiktok:    'aspect-[9/16]',
 }
 
 const PHOTOROOM_URL =
@@ -99,81 +90,60 @@ function triggerDownload(imageUrl: string, style: string): void {
 }
 
 // ─── ImageCard ────────────────────────────────────────────────────────────────
-// Shows a Before/After slider when originalUrl differs from imageUrl.
-// Falls back to a plain image with an overlay download button.
+// Wraps a PlatformMockup (realistic platform UI frame) + a Download button.
+// Each image is shown in the context of the channel it was optimised for.
+
+interface MockupData {
+  productTitle: string
+  price?:       string
+  headline?:    string   // copy.bullets[0]
+  description?: string  // full SEO description (truncated inside mockup)
+}
 
 function ImageCard({
   style,
   channelLabel,
   imageUrl,
-  originalUrl,
   onDownload,
+  mockupData,
 }: {
-  style: ImageStyle
+  style:        ImageStyle
   channelLabel: string
-  imageUrl: string
-  originalUrl: string
-  onDownload: () => void
+  imageUrl:     string
+  onDownload:   () => void
+  mockupData:   MockupData
 }) {
-  const aspectClass = ASPECT_CLASS[style]
-  // Only show the slider when Photoroom actually processed the image
-  const hasSlider   = !!(originalUrl && originalUrl !== imageUrl)
-
   return (
     <div className="flex flex-col gap-2">
-      {/* Channel label */}
+      {/* Channel label badge */}
       <span className="text-sm font-semibold text-brand bg-brand-soft border border-brand/20 px-3 py-1 rounded-full self-start leading-none">
         {channelLabel}
       </span>
 
-      {hasSlider ? (
-        // ── Before/After interactive slider ─────────────────────────────────
-        <BeforeAfterSlider
-          beforeUrl={originalUrl}
-          afterUrl={imageUrl}
-          alt={channelLabel}
-          aspectClass={aspectClass}
-        />
-      ) : (
-        // ── Plain image with overlay download button ─────────────────────────
-        <div className={`relative overflow-hidden rounded-xl border border-border-subtle ${aspectClass}`}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={imageUrl}
-            alt={channelLabel}
-            className="w-full h-full object-cover"
-            draggable={false}
-          />
-          <button
-            onClick={onDownload}
-            aria-label={`Download ${channelLabel} image`}
-            className={[
-              'absolute bottom-2 right-2',
-              'bg-white/90 text-fg rounded-full p-2 shadow-md',
-              'hover:scale-110 active:scale-95 transition-transform duration-150',
-            ].join(' ')}
-          >
-            <Download size={15} aria-hidden="true" />
-          </button>
-        </div>
-      )}
+      {/* Platform-specific mockup frame */}
+      <PlatformMockup
+        imageUrl={imageUrl}
+        style={style}
+        productTitle={mockupData.productTitle}
+        price={mockupData.price}
+        headline={mockupData.headline}
+        description={mockupData.description}
+      />
 
-      {/* Download button shown below the slider (can't overlay it) */}
-      {hasSlider && (
-        <button
-          onClick={onDownload}
-          aria-label={`Download ${channelLabel} image`}
-          className={[
-            'self-end inline-flex items-center gap-1.5',
-            'text-xs font-medium text-fg-muted hover:text-fg',
-            'border border-border-subtle bg-background hover:bg-background-soft',
-            'px-2.5 py-1 rounded-lg transition-colors duration-150',
-          ].join(' ')}
-        >
-          <Download size={12} aria-hidden="true" />
-          Download
-        </button>
-      )}
+      {/* Download button */}
+      <button
+        onClick={onDownload}
+        aria-label={`Download ${channelLabel} image`}
+        className={[
+          'self-end inline-flex items-center gap-1.5',
+          'text-xs font-medium text-fg-muted hover:text-fg',
+          'border border-border-subtle bg-background hover:bg-background-soft',
+          'px-2.5 py-1 rounded-lg transition-colors duration-150',
+        ].join(' ')}
+      >
+        <Download size={12} aria-hidden="true" />
+        Download
+      </button>
     </div>
   )
 }
@@ -364,6 +334,16 @@ export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResu
           </span>
         </div>
 
+        {/* mockupData is shared across all 5 image cards */}
+        {(() => {
+          const mockupData: MockupData = {
+            productTitle: kit.scraped.title,
+            price:        kit.scraped.price,
+            headline:     localCopy.bullets[0],
+            description:  localCopy.description,
+          }
+
+          return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
           {kit.images.map((img) => {
             const card = (
@@ -372,11 +352,11 @@ export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResu
                 style={img.style}
                 channelLabel={img.channelLabel}
                 imageUrl={img.imageUrl}
-                originalUrl={img.originalUrl}
                 onDownload={() => {
                   triggerDownload(img.imageUrl, img.style)
                   track(EVENTS.IMAGE_DOWNLOADED, { style: img.style })
                 }}
+                mockupData={mockupData}
               />
             )
 
@@ -393,6 +373,8 @@ export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResu
             return card
           })}
         </div>
+          )
+        })()}
       </section>
 
       {/* ── 3. Upgrade CTA ─────────────────────────────────────────────────── */}

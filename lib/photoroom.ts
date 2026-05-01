@@ -20,7 +20,7 @@ interface StyleConfig {
 const STYLE_CONFIGS: StyleConfig[] = [
   {
     style: 'amazon',
-    channelLabel: 'Optimizado para Amazon',
+    channelLabel: 'Amazon Listing',
     params: {
       removeBackground: 'true',
       'background.color': 'FFFFFF',
@@ -32,7 +32,7 @@ const STYLE_CONFIGS: StyleConfig[] = [
   },
   {
     style: 'instagram',
-    channelLabel: 'Optimizado para Instagram',
+    channelLabel: 'Instagram Post',
     params: {
       removeBackground: 'true',
       'background.prompt':
@@ -49,7 +49,7 @@ const STYLE_CONFIGS: StyleConfig[] = [
   },
   {
     style: 'ads',
-    channelLabel: 'Optimizado para Ads',
+    channelLabel: 'Paid Ad',
     params: {
       removeBackground: 'true',
       'background.prompt':
@@ -65,7 +65,7 @@ const STYLE_CONFIGS: StyleConfig[] = [
   },
   {
     style: 'pinterest',
-    channelLabel: 'Optimizado para Pinterest/Email',
+    channelLabel: 'Pinterest / Email',
     params: {
       removeBackground: 'true',
       'background.prompt':
@@ -81,7 +81,7 @@ const STYLE_CONFIGS: StyleConfig[] = [
   },
   {
     style: 'tiktok',
-    channelLabel: 'Optimizado para TikTok Shop',
+    channelLabel: 'TikTok Shop',
     params: {
       removeBackground: 'true',
       'background.color': 'F5F5F0',
