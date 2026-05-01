@@ -264,6 +264,92 @@ export function KitShowcase() {
           </span>
         </div>
 
+        {/* ── Photoroom transformation showcase ──────────────────────────────── */}
+        <div className="mb-10">
+          <div className="rounded-2xl border border-brand/20 bg-gradient-to-br from-brand-soft/60 to-white overflow-hidden">
+
+            {/* Header */}
+            <div className="flex items-center gap-2.5 px-5 py-4 border-b border-brand/10">
+              <div className="w-7 h-7 rounded-lg bg-brand flex items-center justify-center shrink-0">
+                <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-white fill-none stroke-current stroke-2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-fg leading-tight">
+                  Background removed by Photoroom API
+                </p>
+                <p className="text-xs text-fg-muted">
+                  Any product photo → studio-ready image in seconds
+                </p>
+              </div>
+            </div>
+
+            {/* Before / After split */}
+            <div className="grid grid-cols-2 gap-0">
+
+              {/* Before */}
+              <div className="flex flex-col gap-2 p-4 border-r border-brand/10">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-fg-muted/40 shrink-0" aria-hidden="true" />
+                  <span className="text-xs font-semibold text-fg-muted uppercase tracking-wider">Original photo</span>
+                </div>
+                <div className="rounded-xl overflow-hidden border border-border-subtle aspect-square">
+                  <Image
+                    src="/examples/instagram.webp"
+                    alt="Original product photo — sneaker on outdoor background before Photoroom"
+                    width={1024}
+                    height={1024}
+                    className="w-full h-full object-cover"
+                    sizes="(max-width: 640px) 45vw, 25vw"
+                  />
+                </div>
+                <p className="text-[11px] text-fg-muted text-center">Any background, any lighting</p>
+              </div>
+
+              {/* After */}
+              <div className="flex flex-col gap-2 p-4 relative">
+                {/* Purple arrow on the divider */}
+                <div className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-brand shadow-md flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-white fill-none stroke-current stroke-2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-brand shrink-0" aria-hidden="true" />
+                  <span className="text-xs font-bold text-brand uppercase tracking-wider">Processed by Photoroom ✨</span>
+                </div>
+                <div className="rounded-xl overflow-hidden border border-brand/20 aspect-square shadow-sm bg-white">
+                  <Image
+                    src="/examples/amazon.webp"
+                    alt="Product after Photoroom processing — clean white background, studio quality"
+                    width={1024}
+                    height={1024}
+                    className="w-full h-full object-cover"
+                    sizes="(max-width: 640px) 45vw, 25vw"
+                  />
+                </div>
+                <p className="text-[11px] text-brand font-medium text-center">Background removed · Studio quality</p>
+              </div>
+            </div>
+
+            {/* Feature tags */}
+            <div className="flex flex-wrap gap-2 px-5 py-3 border-t border-brand/10 bg-white/50">
+              {[
+                'Background removal',
+                'AI lighting per channel',
+                'Custom style per platform',
+                '5 formats in one API call',
+              ].map((tag) => (
+                <span key={tag} className="text-xs font-medium text-brand bg-brand-soft border border-brand/20 px-2.5 py-1 rounded-full">
+                  ✓ {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* ── Images sub-section ──────────────────────────────────────────────── */}
         <div className="mb-16">
           <div className="flex items-center gap-3 mb-6">
