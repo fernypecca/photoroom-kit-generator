@@ -312,18 +312,91 @@ export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResu
         <hr className="border-border-subtle mt-1" />
       </header>
 
-      {/* ── 2. Image grid ──────────────────────────────────────────────────── */}
+      {/* ── 2. Photoroom transformation showcase ───────────────────────────── */}
       {/*
-        Grid: 3 columns × 2 rows, items-start.
-        Row 1: amazon · instagram · ads   (all aspect-square)
-        Row 2: pinterest · tiktok (9:16)  (5 images total — col 3 row 2 is empty)
-
-        Each card shows a drag-to-reveal Before/After slider when Photoroom
-        successfully processed the image (originalUrl !== imageUrl).
-
-        Mobile: 1 col   SM: 2 cols   LG: 3 cols
-        TikTok constrained to ~40% width on mobile/tablet so it doesn't dominate.
+        Shows the background removal in action: original scraped photo (left)
+        vs the amazon-style image processed by Photoroom API (right).
+        This is the core value proof — makes the API work impossible to miss.
       */}
+      {(() => {
+        const amazonImg = kit.images.find((i) => i.style === 'amazon')
+        if (!amazonImg || amazonImg.originalUrl === amazonImg.imageUrl) return null
+
+        return (
+          <div className="rounded-2xl border border-brand/20 bg-gradient-to-br from-brand-soft/60 to-white overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center gap-2.5 px-5 py-4 border-b border-brand/10">
+              {/* Photoroom logo-ish icon */}
+              <div className="w-7 h-7 rounded-lg bg-brand flex items-center justify-center shrink-0">
+                <svg viewBox="0 0 24 24" className="w-4 h-4 text-white fill-current" aria-hidden="true">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-fg leading-tight">Background removed by Photoroom API</p>
+                <p className="text-xs text-fg-muted">Your original photo → studio-ready product image in seconds</p>
+              </div>
+            </div>
+
+            {/* Before / After split */}
+            <div className="grid grid-cols-2 gap-0">
+              {/* Before */}
+              <div className="flex flex-col gap-2 p-4 border-r border-brand/10">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-fg-muted/40 shrink-0" />
+                  <span className="text-xs font-semibold text-fg-muted uppercase tracking-wider">Original photo</span>
+                </div>
+                <div className="rounded-xl overflow-hidden border border-border-subtle aspect-square bg-background-soft">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={amazonImg.originalUrl}
+                    alt="Original product photo"
+                    className="w-full h-full object-cover"
+                    draggable={false}
+                  />
+                </div>
+                <p className="text-[11px] text-fg-muted text-center">Any background, any lighting</p>
+              </div>
+
+              {/* After */}
+              <div className="flex flex-col gap-2 p-4 relative">
+                {/* Arrow badge between panels */}
+                <div className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-brand shadow-md flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-white fill-none stroke-current stroke-2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-brand shrink-0" />
+                  <span className="text-xs font-bold text-brand uppercase tracking-wider">Processed by Photoroom ✨</span>
+                </div>
+                <div className="rounded-xl overflow-hidden border border-brand/20 aspect-square bg-white shadow-sm">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={amazonImg.imageUrl}
+                    alt="Photoroom processed product photo"
+                    className="w-full h-full object-cover"
+                    draggable={false}
+                  />
+                </div>
+                <p className="text-[11px] text-brand font-medium text-center">Background removed · Studio quality</p>
+              </div>
+            </div>
+
+            {/* Feature tags */}
+            <div className="flex flex-wrap gap-2 px-5 py-3 border-t border-brand/10 bg-white/50">
+              {['Background removal', 'AI-matched lighting per channel', 'Custom style per platform', '5 formats in one API call'].map((tag) => (
+                <span key={tag} className="text-xs font-medium text-brand bg-brand-soft border border-brand/20 px-2.5 py-1 rounded-full">
+                  ✓ {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* ── 3. Image grid ──────────────────────────────────────────────────── */}
       <section aria-labelledby="images-heading">
         <div className="flex items-center gap-3 mb-6">
           <h2 id="images-heading" className="text-base font-semibold text-fg">
@@ -334,7 +407,7 @@ export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResu
           </span>
         </div>
 
-        {/* mockupData is shared across all 5 image cards */}
+        {/* mockupData feeds product/copy context into each platform mockup */}
         {(() => {
           const mockupData: MockupData = {
             productTitle: kit.scraped.title,
