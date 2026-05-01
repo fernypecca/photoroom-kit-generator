@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useId } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { track, EVENTS } from '@/lib/analytics'
 import type { Variant } from '@/lib/ab'
 
@@ -23,9 +23,41 @@ const EXAMPLE_URLS = [
   'amazon.com/anker-powercore-portable-charger',
 ]
 
+// ─── Kit counter ───────────────────────────────────────────────────────────────
+
+const COUNTER_KEY  = 'photoroom_kit_count'
+const BASE_COUNT   = 2341  // realistic base — increments from here
+
+// ─── Platform detection ────────────────────────────────────────────────────────
+// Maps a typed URL to a detected platform badge.
+// Full class strings are required here (not template literals) so Tailwind
+// doesn't purge them in the production build.
+
+type PlatformKey = 'amazon' | 'etsy' | 'shopify' | 'ebay' | 'walmart' | 'generic'
+
+const PLATFORM_INFO: Record<PlatformKey, { emoji: string; label: string; classes: string }> = {
+  amazon:  { emoji: '📦', label: 'Amazon detected',       classes: 'text-orange-700 bg-orange-50 border-orange-200' },
+  etsy:    { emoji: '🛍️', label: 'Etsy detected',         classes: 'text-orange-500 bg-orange-50 border-orange-200' },
+  shopify: { emoji: '🛒', label: 'Shopify detected',       classes: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+  ebay:    { emoji: '🏷️', label: 'eBay detected',         classes: 'text-blue-600 bg-blue-50 border-blue-200' },
+  walmart: { emoji: '🏪', label: 'Walmart detected',       classes: 'text-blue-500 bg-blue-50 border-blue-200' },
+  generic: { emoji: '🌐', label: 'Online store detected',  classes: 'text-brand bg-brand-soft border-brand/20' },
+}
+
+function detectPlatform(rawUrl: string): PlatformKey | null {
+  const url = rawUrl.trim().toLowerCase()
+  if (!url) return null
+  if (url.includes('amazon.'))                                  return 'amazon'
+  if (url.includes('etsy.'))                                    return 'etsy'
+  if (url.includes('myshopify.') || url.includes('/products/')) return 'shopify'
+  if (url.includes('ebay.'))                                    return 'ebay'
+  if (url.includes('walmart.'))                                 return 'walmart'
+  // Only show "generic" if it already looks like a full valid URL
+  if (isValidUrl(rawUrl))                                       return 'generic'
+  return null
+}
+
 // ─── Simple URL validator ──────────────────────────────────────────────────────
-// Accepts bare domains (etsy.com/...) and full URLs (https://...).
-// Prepends https:// if missing so new URL() can parse it.
 
 function isValidUrl(value: string): boolean {
   const candidate = value.trim()
@@ -49,14 +81,44 @@ function normalizeUrl(value: string): string {
 // ─── HeroInput component ───────────────────────────────────────────────────────
 
 export function HeroInput({ onSubmit, isLoading = false, variant = 'A' }: HeroInputProps) {
-  const [url, setUrl] = useState('')
+  const [url, setUrl]   = useState('')
   const [error, setError] = useState<string | null>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef          = useRef<HTMLInputElement>(null)
 
-  // Stable IDs for aria-describedby
-  const inputId = useId()
-  const errorId = useId()
-  const socialProofId = useId()
+  // ── Platform detection ────────────────────────────────────────────────────
+  const [detectedPlatform, setDetectedPlatform] = useState<PlatformKey | null>(null)
+  const detectionTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // ── Live kit counter ──────────────────────────────────────────────────────
+  // null = not yet hydrated (avoids SSR mismatch)
+  const [kitCount, setKitCount]     = useState<number | null>(null)
+  const [counterFlash, setCounterFlash] = useState(false)
+
+  useEffect(() => {
+    // Hydrate from localStorage (or seed with base count)
+    const stored = localStorage.getItem(COUNTER_KEY)
+    const initial = stored ? parseInt(stored, 10) : BASE_COUNT
+    if (!stored) localStorage.setItem(COUNTER_KEY, String(BASE_COUNT))
+    setKitCount(initial)
+
+    // Auto-increment with a random delay (8–14 s) to simulate live usage
+    let timer: ReturnType<typeof setTimeout>
+
+    function tick() {
+      setKitCount((prev) => {
+        const next = (prev ?? BASE_COUNT) + 1
+        localStorage.setItem(COUNTER_KEY, String(next))
+        return next
+      })
+      setCounterFlash(true)
+      setTimeout(() => setCounterFlash(false), 600)
+      // Schedule next tick with a new random delay
+      timer = setTimeout(tick, 8000 + Math.random() * 6000)
+    }
+
+    timer = setTimeout(tick, 8000 + Math.random() * 6000)
+    return () => clearTimeout(timer)
+  }, [])
 
   // ── Form submission ──────────────────────────────────────────────────────────
   function handleSubmit(e: React.FormEvent) {
@@ -75,22 +137,43 @@ export function HeroInput({ onSubmit, isLoading = false, variant = 'A' }: HeroIn
     }
 
     const normalized = normalizeUrl(url)
+    setDetectedPlatform(null) // clear badge on submit
 
-    // Stub: log + analytics (Step 6 will replace this with the state machine call)
-    console.log('[FORM SUBMIT]', normalized)
     track(EVENTS.KIT_GENERATION_STARTED, { url: normalized })
-
     onSubmit?.(normalized)
   }
 
   // ── Example pill click ───────────────────────────────────────────────────────
   function handlePillClick(example: string) {
-    setUrl(`https://${example}`)
+    const full = `https://${example}`
+    setUrl(full)
     setError(null)
+    // Immediately detect platform for example pills
+    setDetectedPlatform(detectPlatform(full))
     inputRef.current?.focus()
   }
 
+  // ── URL onChange with debounced platform detection ───────────────────────────
+  function handleUrlChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value
+    setUrl(value)
+    if (error) setError(null)
+
+    if (detectionTimer.current) clearTimeout(detectionTimer.current)
+
+    if (!value.trim()) {
+      setDetectedPlatform(null)
+      return
+    }
+
+    detectionTimer.current = setTimeout(() => {
+      setDetectedPlatform(detectPlatform(value))
+    }, 350)
+  }
+
   // ────────────────────────────────────────────────────────────────────────────
+
+  const platformInfo = detectedPlatform ? PLATFORM_INFO[detectedPlatform] : null
 
   return (
     <section className="flex flex-col items-center justify-center py-20 sm:py-28 text-center">
@@ -121,24 +204,19 @@ export function HeroInput({ onSubmit, isLoading = false, variant = 'A' }: HeroIn
           noValidate
         >
           <div className="flex-1 flex flex-col gap-1.5">
-            {/* sr-only label for accessibility */}
-            <label htmlFor={inputId} className="sr-only">
+            <label htmlFor="hero-url-input" className="sr-only">
               Product URL
             </label>
 
             <input
               ref={inputRef}
-              id={inputId}
+              id="hero-url-input"
               data-hero-input=""
               type="url"
               value={url}
-              onChange={(e) => {
-                setUrl(e.target.value)
-                if (error) setError(null)
-              }}
+              onChange={handleUrlChange}
               disabled={isLoading}
               placeholder="Paste your product URL (Shopify, Amazon, Etsy...)"
-              aria-describedby={`${error ? errorId : ''} ${socialProofId}`.trim()}
               aria-invalid={!!error}
               className={[
                 'w-full h-14 px-4 rounded-lg border-2 bg-background text-fg text-base',
@@ -152,10 +230,25 @@ export function HeroInput({ onSubmit, isLoading = false, variant = 'A' }: HeroIn
               ].join(' ')}
             />
 
-            {/* Inline error */}
+            {/* Inline validation error */}
             {error && (
-              <p id={errorId} role="alert" className="text-sm text-destructive text-left px-1">
+              <p role="alert" className="text-sm text-destructive text-left px-1">
                 {error}
+              </p>
+            )}
+
+            {/* ── Platform detection badge ─────────────────────────────────── */}
+            {!error && platformInfo && (
+              <p className="text-left">
+                <span
+                  className={[
+                    'inline-flex items-center gap-1.5',
+                    'text-xs font-medium px-2.5 py-1 rounded-full border',
+                    platformInfo.classes,
+                  ].join(' ')}
+                >
+                  {platformInfo.emoji} {platformInfo.label}
+                </span>
               </p>
             )}
           </div>
@@ -176,17 +269,35 @@ export function HeroInput({ onSubmit, isLoading = false, variant = 'A' }: HeroIn
           </button>
         </form>
 
-        {/* ── Social proof micro-row ──────────────────────────────────────────── */}
-        <div
-          id={socialProofId}
-          className="flex items-center gap-2 text-sm text-fg-muted"
-          aria-label="What's included in the kit"
-        >
-          <span>⚡ 30 seconds</span>
-          <span className="text-border-subtle" aria-hidden="true">·</span>
-          <span>🎨 5 images + lifestyle AI</span>
-          <span className="text-border-subtle" aria-hidden="true">·</span>
-          <span>✍️ SEO descriptions</span>
+        {/* ── Social proof micro-row + live counter ──────────────────────────── */}
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex items-center gap-2 text-sm text-fg-muted flex-wrap justify-center">
+            <span>⚡ 30 seconds</span>
+            <span className="text-border-subtle" aria-hidden="true">·</span>
+            <span>🎨 5 images + lifestyle AI</span>
+            <span className="text-border-subtle" aria-hidden="true">·</span>
+            <span>✍️ SEO descriptions</span>
+          </div>
+
+          {/* Live kit counter — only renders after localStorage hydration */}
+          {kitCount !== null && (
+            <div className="flex items-center gap-2 text-sm text-fg-muted">
+              {/* Pulsing green dot = "live" */}
+              <span className="relative flex h-2 w-2" aria-hidden="true">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+              </span>
+              <span
+                className={[
+                  'font-semibold transition-colors duration-500',
+                  counterFlash ? 'text-brand' : 'text-fg-muted',
+                ].join(' ')}
+              >
+                {kitCount.toLocaleString()}
+              </span>
+              <span>kits generated</span>
+            </div>
+          )}
         </div>
 
         {/* ── Example URL pills ───────────────────────────────────────────────── */}

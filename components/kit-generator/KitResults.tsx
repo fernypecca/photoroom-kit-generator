@@ -6,11 +6,12 @@
 // Designed for maximum immediate impact and one-click asset use.
 
 import { useState, useEffect } from 'react'
-import { Link2, Download, Copy, Check, Sparkles } from 'lucide-react'
+import { Link2, Download, Copy, Check, Sparkles, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 
-import type { GeneratedKit, ImageStyle, Platform } from '@/types'
+import type { GeneratedKit, GeneratedCopy, ImageStyle, Platform } from '@/types'
 import { track, EVENTS } from '@/lib/analytics'
+import { BeforeAfterSlider } from './BeforeAfterSlider'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -59,15 +60,13 @@ function truncateUrl(url: string, max = 60): string {
 
 /**
  * Triggers a browser download — cross-browser reliable.
- * - data: URLs (Photoroom base64): direct anchor click (no fetch needed).
- * - Static/remote URLs (/examples/, https://...): fetch → Blob → object URL,
- *   which forces a download dialog instead of in-tab navigation.
+ * - data: URLs (Photoroom base64): direct anchor click.
+ * - Static/remote URLs: fetch → Blob → object URL, forces download dialog.
  */
 function triggerDownload(imageUrl: string, style: string): void {
   const filename = `photoroom-kit-${style}-${Date.now()}.webp`
 
   if (imageUrl.startsWith('data:')) {
-    // base64 data URL — anchor click works directly
     const link    = document.createElement('a')
     link.href     = imageUrl
     link.download = filename
@@ -77,7 +76,6 @@ function triggerDownload(imageUrl: string, style: string): void {
     return
   }
 
-  // Static path or remote URL — fetch to blob so browser downloads instead of navigating
   fetch(imageUrl)
     .then((res) => res.blob())
     .then((blob) => {
@@ -91,7 +89,6 @@ function triggerDownload(imageUrl: string, style: string): void {
       URL.revokeObjectURL(url)
     })
     .catch(() => {
-      // Fallback: plain anchor (works for same-origin paths in most browsers)
       const link    = document.createElement('a')
       link.href     = imageUrl
       link.download = filename
@@ -102,57 +99,86 @@ function triggerDownload(imageUrl: string, style: string): void {
 }
 
 // ─── ImageCard ────────────────────────────────────────────────────────────────
+// Shows a Before/After slider when originalUrl differs from imageUrl.
+// Falls back to a plain image with an overlay download button.
 
 function ImageCard({
   style,
   channelLabel,
   imageUrl,
+  originalUrl,
   onDownload,
 }: {
   style: ImageStyle
   channelLabel: string
   imageUrl: string
+  originalUrl: string
   onDownload: () => void
 }) {
   const aspectClass = ASPECT_CLASS[style]
+  // Only show the slider when Photoroom actually processed the image
+  const hasSlider   = !!(originalUrl && originalUrl !== imageUrl)
 
   return (
     <div className="flex flex-col gap-2">
-      {/* Channel label — Fix 3: larger, semibold, subtle brand border */}
+      {/* Channel label */}
       <span className="text-sm font-semibold text-brand bg-brand-soft border border-brand/20 px-3 py-1 rounded-full self-start leading-none">
         {channelLabel}
       </span>
 
-      {/* Image + always-visible download button */}
-      <div className={`relative overflow-hidden rounded-xl border border-border-subtle ${aspectClass}`}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={imageUrl}
+      {hasSlider ? (
+        // ── Before/After interactive slider ─────────────────────────────────
+        <BeforeAfterSlider
+          beforeUrl={originalUrl}
+          afterUrl={imageUrl}
           alt={channelLabel}
-          className="w-full h-full object-cover"
-          draggable={false}
+          aspectClass={aspectClass}
         />
+      ) : (
+        // ── Plain image with overlay download button ─────────────────────────
+        <div className={`relative overflow-hidden rounded-xl border border-border-subtle ${aspectClass}`}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={imageUrl}
+            alt={channelLabel}
+            className="w-full h-full object-cover"
+            draggable={false}
+          />
+          <button
+            onClick={onDownload}
+            aria-label={`Download ${channelLabel} image`}
+            className={[
+              'absolute bottom-2 right-2',
+              'bg-white/90 text-fg rounded-full p-2 shadow-md',
+              'hover:scale-110 active:scale-95 transition-transform duration-150',
+            ].join(' ')}
+          >
+            <Download size={15} aria-hidden="true" />
+          </button>
+        </div>
+      )}
 
-        {/* Download button — always visible (Fix 2), scales on hover */}
+      {/* Download button shown below the slider (can't overlay it) */}
+      {hasSlider && (
         <button
           onClick={onDownload}
           aria-label={`Download ${channelLabel} image`}
           className={[
-            'absolute bottom-2 right-2',
-            'bg-white/90 text-fg rounded-full p-2 shadow-md',
-            'hover:scale-110 active:scale-95 transition-transform duration-150',
+            'self-end inline-flex items-center gap-1.5',
+            'text-xs font-medium text-fg-muted hover:text-fg',
+            'border border-border-subtle bg-background hover:bg-background-soft',
+            'px-2.5 py-1 rounded-lg transition-colors duration-150',
           ].join(' ')}
         >
-          <Download size={15} aria-hidden="true" />
+          <Download size={12} aria-hidden="true" />
+          Download
         </button>
-      </div>
+      )}
     </div>
   )
 }
 
 // ─── CopyButton ───────────────────────────────────────────────────────────────
-// Manages its own 2-second "✓ Copied" visual state (optimistic).
-// The parent is responsible for clipboard write + toast via onCopy.
 
 function CopyButton({
   label,
@@ -168,8 +194,8 @@ function CopyButton({
   const [copied, setCopied] = useState(false)
 
   function handleClick() {
-    onCopy()        // parent: writes to clipboard + fires toast
-    setCopied(true) // optimistic visual feedback
+    onCopy()
+    setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
 
@@ -204,11 +230,16 @@ export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResu
     track(EVENTS.KIT_DISPLAYED, { platform: kit.copy.detectedPlatform })
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Derived values ────────────────────────────────────────────────────────
-  const platformLabel = PLATFORM_LABEL[kit.copy.detectedPlatform] ?? kit.copy.detectedPlatform
-  const wordCount     = kit.copy.description.trim().split(/\s+/).length
+  // ── Local copy state — can be replaced by "regenerate" without re-scraping ─
+  const [localCopy, setLocalCopy]           = useState<GeneratedCopy>(kit.copy)
+  const [isRegenerating, setIsRegenerating] = useState(false)
+  const [justRegenerated, setJustRegenerated] = useState(false)
 
-  // ── Inline copy state (used by tweet card buttons) ────────────────────────
+  // ── Derived values ────────────────────────────────────────────────────────
+  const platformLabel = PLATFORM_LABEL[localCopy.detectedPlatform] ?? localCopy.detectedPlatform
+  const wordCount     = localCopy.description.trim().split(/\s+/).length
+
+  // ── Inline copy state (tweet card) ────────────────────────────────────────
   const [copied, setCopied] = useState<string | null>(null)
 
   // ── Clipboard helpers ─────────────────────────────────────────────────────
@@ -229,20 +260,46 @@ export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResu
   function handleCopyAll(): void {
     const text = [
       '📝 SEO Description:\n',
-      kit.copy.description,
+      localCopy.description,
       '\n\n🔹 5 Bullets:\n',
-      kit.copy.bullets.map((b) => `• ${b}`).join('\n'),
+      localCopy.bullets.map((b) => `• ${b}`).join('\n'),
       '\n\n🐦 Tweet:\n',
-      kit.copy.tweet,
+      localCopy.tweet,
     ].join('')
     copyToClipboard(text, 'Copied to clipboard ✓')
     track(EVENTS.COPY_COPIED, { type: 'all' })
   }
 
   function handleCopyBullets(): void {
-    const text = kit.copy.bullets.map((b) => `• ${b}`).join('\n')
+    const text = localCopy.bullets.map((b) => `• ${b}`).join('\n')
     copyToClipboard(text, 'Bullets copied to clipboard ✓')
     track(EVENTS.COPY_COPIED, { type: 'bullets' })
+  }
+
+  // ── Regenerate copy — re-calls /api/generate with the same scraped data ───
+  async function handleRegenerate(): Promise<void> {
+    setIsRegenerating(true)
+    setJustRegenerated(false)
+    try {
+      const res  = await fetch('/api/generate', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ scraped: kit.scraped }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setLocalCopy(data.data)
+        setJustRegenerated(true)
+        setTimeout(() => setJustRegenerated(false), 3000)
+        track(EVENTS.COPY_COPIED, { type: 'regenerate' })
+      } else {
+        toast.error('Could not regenerate copy. Please try again.')
+      }
+    } catch {
+      toast.error('Could not regenerate copy. Please try again.')
+    } finally {
+      setIsRegenerating(false)
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -253,17 +310,14 @@ export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResu
       {/* ── 1. Header ──────────────────────────────────────────────────────── */}
       <header className="flex flex-col gap-4">
 
-        {/* Eyebrow */}
         <p className="text-base font-bold text-brand uppercase tracking-widest">
           Your kit is ready ✨
         </p>
 
-        {/* Main headline — big and celebratory */}
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-fg leading-[1.05]">
           Here&apos;s your marketing kit
         </h1>
 
-        {/* Platform + time badges */}
         <div className="flex flex-wrap gap-2 items-center mt-1">
           <span className="text-sm font-semibold text-brand bg-brand-soft px-3 py-1 rounded-full">
             {platformLabel}
@@ -273,7 +327,6 @@ export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResu
           </span>
         </div>
 
-        {/* Social proof — pill with border, more visible */}
         <div className="inline-flex items-center gap-2 self-start border border-border-subtle rounded-full px-3 py-1.5 bg-background-soft mt-1">
           <span className="text-xs text-fg-muted/50" aria-hidden="true">⭐⭐⭐⭐⭐</span>
           <span className="text-xs font-medium text-fg-muted">
@@ -281,13 +334,11 @@ export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResu
           </span>
         </div>
 
-        {/* Product URL */}
         <div className="flex items-center gap-1.5 text-sm text-fg-muted mt-1">
           <Link2 size={14} aria-hidden="true" className="shrink-0" />
           <span className="truncate">{truncateUrl(productUrl)}</span>
         </div>
 
-        {/* Separator */}
         <hr className="border-border-subtle mt-1" />
       </header>
 
@@ -297,12 +348,11 @@ export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResu
         Row 1: amazon · instagram · ads   (all aspect-square)
         Row 2: pinterest · tiktok (9:16)  (5 images total — col 3 row 2 is empty)
 
-        Uses <img> not <Image> because imageUrl may be a data:image/webp;base64
-        string returned by Photoroom — next/image cannot handle data: URLs.
+        Each card shows a drag-to-reveal Before/After slider when Photoroom
+        successfully processed the image (originalUrl !== imageUrl).
 
-        Mobile:  1 col, stacked
-        SM:      2 cols
-        LG:      3 cols, items-start (TikTok taller, contrast is intentional)
+        Mobile: 1 col   SM: 2 cols   LG: 3 cols
+        TikTok constrained to ~40% width on mobile/tablet so it doesn't dominate.
       */}
       <section aria-labelledby="images-heading">
         <div className="flex items-center gap-3 mb-6">
@@ -314,11 +364,6 @@ export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResu
           </span>
         </div>
 
-        {/*
-          Grid: 3 cols on lg, 2 on sm, 1 on mobile.
-          TikTok (9:16) is constrained to ~40% width on sm so it doesn't
-          dominate the row — centered on sm, full width on lg.
-        */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
           {kit.images.map((img) => {
             const card = (
@@ -327,6 +372,7 @@ export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResu
                 style={img.style}
                 channelLabel={img.channelLabel}
                 imageUrl={img.imageUrl}
+                originalUrl={img.originalUrl}
                 onDownload={() => {
                   triggerDownload(img.imageUrl, img.style)
                   track(EVENTS.IMAGE_DOWNLOADED, { style: img.style })
@@ -393,14 +439,43 @@ export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResu
                 Detected: {platformLabel}
               </span>
               <span className="text-xs text-fg-muted">
-                Generated in ~8s · Adapted to {kit.copy.detectedPlatform} tone
+                Generated in ~8s · Adapted to {localCopy.detectedPlatform} tone
               </span>
+              {/* "New version" badge — appears for 3s after regeneration */}
+              {justRegenerated && (
+                <span className="text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                  ✓ New version
+                </span>
+              )}
             </div>
-            <CopyButton
-              label="Copy all"
-              copiedLabel="✓ Copied"
-              onCopy={handleCopyAll}
-            />
+
+            <div className="flex items-center gap-2">
+              {/* Regenerate button */}
+              <button
+                onClick={handleRegenerate}
+                disabled={isRegenerating}
+                aria-label="Generate a new version of the copy"
+                className={[
+                  'inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg',
+                  'border border-border-subtle bg-background hover:bg-background-soft',
+                  'text-fg-muted hover:text-fg transition-colors duration-150 font-medium',
+                  isRegenerating ? 'opacity-50 cursor-not-allowed' : '',
+                ].join(' ')}
+              >
+                <RefreshCw
+                  size={13}
+                  aria-hidden="true"
+                  className={isRegenerating ? 'animate-spin' : ''}
+                />
+                {isRegenerating ? 'Generating…' : 'New version'}
+              </button>
+
+              <CopyButton
+                label="Copy all"
+                copiedLabel="✓ Copied"
+                onCopy={handleCopyAll}
+              />
+            </div>
           </div>
 
           <div className="px-6 py-6 flex flex-col gap-8">
@@ -419,7 +494,7 @@ export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResu
                 </span>
               </div>
               <p className="text-sm text-fg leading-relaxed">
-                {kit.copy.description}
+                {localCopy.description}
               </p>
             </div>
 
@@ -437,7 +512,7 @@ export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResu
                 />
               </div>
               <ol className="flex flex-col gap-2.5">
-                {kit.copy.bullets.map((bullet, i) => (
+                {localCopy.bullets.map((bullet, i) => (
                   <li key={i} className="flex items-start gap-3 text-sm text-fg">
                     <span className="shrink-0 w-6 h-6 rounded-full bg-brand-soft text-brand text-xs font-bold flex items-center justify-center mt-0.5">
                       {i + 1}
@@ -457,7 +532,6 @@ export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResu
               <div className="border border-border-subtle rounded-2xl p-4 bg-white max-w-[500px]">
                 {/* Tweet header */}
                 <div className="flex items-center gap-3 mb-3">
-                  {/* Avatar — gradient circle with first letter of domain */}
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand to-brand-hover flex items-center justify-center text-white font-bold text-sm shrink-0">
                     {productUrl.replace(/^https?:\/\//, '').split('.')[0]?.[0]?.toUpperCase() ?? 'U'}
                   </div>
@@ -465,7 +539,6 @@ export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResu
                     <p className="font-bold text-sm text-fg leading-tight">Your Store</p>
                     <p className="text-xs text-fg-muted">@yourstore</p>
                   </div>
-                  {/* X logo */}
                   <div className="ml-auto">
                     <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current text-fg" aria-label="X (Twitter)">
                       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.713 6.231 5.45-6.231Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -473,24 +546,20 @@ export function KitResults({ kit, productUrl, onReset, onPhotoroomCta }: KitResu
                   </div>
                 </div>
 
-                {/* Tweet text */}
-                <p className="text-sm text-fg leading-relaxed mb-3">{kit.copy.tweet}</p>
+                <p className="text-sm text-fg leading-relaxed mb-3">{localCopy.tweet}</p>
 
-                {/* Tweet footer */}
                 <div className="flex items-center justify-between pt-3 border-t border-border-subtle flex-wrap gap-2">
-                  <p className="text-xs text-fg-muted">{kit.copy.tweet.length}/280 characters</p>
+                  <p className="text-xs text-fg-muted">{localCopy.tweet.length}/280 characters</p>
                   <div className="flex items-center gap-3">
-                    {/* Copy tweet button */}
                     <button
-                      onClick={() => handleCopy(kit.copy.tweet, 'tweet')}
+                      onClick={() => handleCopy(localCopy.tweet, 'tweet')}
                       className="flex items-center gap-1.5 text-xs text-fg-muted hover:text-fg transition-colors"
                     >
                       <Copy className="w-3.5 h-3.5" aria-hidden="true" />
                       {copied === 'tweet' ? '✓ Copied' : 'Copy tweet'}
                     </button>
-                    {/* Share on X button */}
                     <a
-                      href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(kit.copy.tweet)}`}
+                      href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(localCopy.tweet)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => track(EVENTS.PHOTOROOM_CTA_CLICKED, { location: 'tweet_share' })}

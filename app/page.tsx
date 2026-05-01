@@ -118,6 +118,12 @@ export default function Home() {
     setKit(generatedKit)
     track(EVENTS.KIT_GENERATION_COMPLETED, { platform: generateData.data.detectedPlatform, url })
     trackEvent('generate', variant)
+
+    // Increment the live kit counter shown on the landing page
+    const _stored = localStorage.getItem('photoroom_kit_count')
+    const _count  = _stored ? parseInt(_stored, 10) : 2341
+    localStorage.setItem('photoroom_kit_count', String(_count + 1))
+
     setAppState('email_gate')
   }
 
